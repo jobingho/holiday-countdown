@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#c62828">
+<title>下一个假期 · 节假日倒计时</title>
+<style>
+  :root{
+    --red:#c62828;
+    --red-deep:#9b1c1c;
+    --red-soft:#fff1f0;
+    --ink:#1f2328;
+    --ink-2:#5b6470;
+    --ink-3:#9aa3ae;
+    --line:#eceef1;
+    --bg:#f6f7f9;
+    --card:#ffffff;
+    --green:#2e9e6b;
+    --amber:#c77700;
+    --shadow:0 6px 24px rgba(31,35,40,.06);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+    font-size:16px;line-height:1.5;
+    padding-bottom:calc(28px + env(safe-area-inset-bottom));
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:0 16px}
+
+  header{
+    background:linear-gradient(160deg,var(--red) 0%,var(--red-deep) 100%);
+    color:#fff;padding:calc(18px + env(safe-area-inset-top)) 0 22px;
+    border-radius:0 0 22px 22px;
+  }
+  .htop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .brand{font-size:17px;font-weight:700;letter-spacing:.5px}
+  .brand small{display:block;font-size:11px;font-weight:400;opacity:.78;letter-spacing:0;margin-top:1px}
+  .edit-toggle{
+    border:1px solid rgba(255,255,255,.45);background:rgba(255,255,255,.12);color:#fff;
+    border-radius:999px;padding:7px 14px;font-size:13px;cursor:pointer;min-height:36px;
+  }
+  .edit-toggle:active{transform:scale(.97)}
+
+  .hero{margin-top:16px}
+  .hero-card{
+    background:var(--card);border-radius:18px;padding:20px 20px 18px;box-shadow:var(--shadow);
+    border:1px solid var(--line);position:relative;overflow:hidden;
+  }
+  .hero-card::before{
+    content:"";position:absolute;right:-40px;top:-50px;width:150px;height:150px;border-radius:50%;
+    background:radial-gradient(circle,rgba(198,40,40,.10),transparent 70%);pointer-events:none;
+  }
+  .hero-label{font-size:13px;color:var(--ink-2)}
+  .hero-name{font-size:30px;font-weight:800;line-height:1.2;margin:2px 0 0;color:var(--red)}
+  .hero-days{display:flex;align-items:baseline;gap:6px;margin:6px 0 2px}
+  .hero-days b{font-size:64px;line-height:1;font-weight:800;color:var(--ink);letter-spacing:-2px;font-variant-numeric:tabular-nums}
+  .hero-days span{font-size:18px;font-weight:600;color:var(--ink-2)}
+  .hero-clock{font-size:13px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+  .hero-meta{margin-top:14px;padding-top:13px;border-top:1px dashed var(--line);font-size:14px;color:var(--ink-2)}
+  .hero-meta .row{display:flex;gap:8px;align-items:flex-start;margin-top:5px}
+  .hero-meta .tag{flex:none;font-size:11px;padding:2px 7px;border-radius:6px;background:var(--red-soft);color:var(--red);font-weight:600;margin-top:2px}
+  .hero-meta .tag.work{background:#fff6e8;color:var(--amber)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .chip{font-size:12px;padding:3px 9px;border-radius:999px;background:#f2f4f6;color:var(--ink-2)}
+
+  .section-title{font-size:14px;font-weight:700;color:var(--ink-2);margin:22px 2px 10px;display:flex;align-items:center;gap:8px}
+  .section-title::before{content:"";width:3px;height:14px;background:var(--red);border-radius:2px}
+
+  .year-head{font-size:15px;font-weight:800;color:var(--ink);margin:18px 2px 10px;display:flex;align-items:center;gap:8px}
+  .year-head span{font-size:11px;font-weight:500;color:var(--ink-3);background:#eef0f2;padding:2px 8px;border-radius:999px}
+  .pager{display:flex;align-items:center;justify-content:center;gap:14px;margin:10px 0 4px}
+  .pager button{
+    border:1px solid var(--line);background:var(--card);color:var(--red);
+    border-radius:9px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;min-height:38px;min-width:76px;
+  }
+  .pager button:disabled{color:var(--ink-3);background:#f6f7f9;cursor:default}
+  .pager .pg-info{font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums;min-width:62px;text-align:center}
+
+  .h-list{display:flex;flex-direction:column;gap:10px}
+  .h-card{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:13px 14px;box-shadow:0 2px 10px rgba(31,35,40,.03);
+  }
+  .h-card.next{border-color:rgba(198,40,40,.35);background:linear-gradient(180deg,#fffafa,#fff)}
+  .h-card.past{opacity:.58}
+  .h-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .h-name{font-size:16px;font-weight:700}
+  .h-name .num{font-size:12px;font-weight:600;color:var(--red);background:var(--red-soft);padding:2px 7px;border-radius:6px;margin-left:6px}
+  .h-status{font-size:12px;font-weight:600;white-space:nowrap}
+  .h-status.soon{color:var(--red)}
+  .h-status.now{color:var(--green)}
+  .h-status.done{color:var(--ink-3)}
+  .h-date{font-size:13px;color:var(--ink-2);margin-top:6px}
+  .h-work{font-size:12px;color:var(--amber);margin-top:5px}
+  .h-actions{display:none;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+  body.editing .h-actions{display:flex}
+  .mini-btn{flex:1;border:1px solid var(--line);background:#fafbfc;color:var(--ink-2);border-radius:9px;padding:8px;font-size:13px;cursor:pointer;min-height:38px}
+  .mini-btn.del{color:var(--red);border-color:#f3c9c9;background:#fff7f7}
+  .add-btn{width:100%;margin-top:10px;border:1px dashed var(--red);color:var(--red);background:var(--red-soft);border-radius:12px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;display:none;min-height:46px}
+  body.editing .add-btn{display:block}
+
+  .toolbar{display:flex;gap:10px;margin-top:18px}
+  .toolbar button{flex:1;border:1px solid var(--line);background:var(--card);color:var(--ink-2);border-radius:11px;padding:11px;font-size:13px;cursor:pointer;min-height:44px}
+
+  footer{text-align:center;color:var(--ink-3);font-size:11px;line-height:1.7;margin-top:26px;padding:0 10px}
+
+  .overlay{position:fixed;inset:0;background:rgba(20,24,30,.45);display:none;align-items:flex-end;justify-content:center;z-index:50}
+  .overlay.show{display:flex}
+  .sheet{
+    background:var(--card);width:100%;max-width:520px;border-radius:20px 20px 0 0;
+    padding:20px 18px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,.15);
+    max-height:92vh;overflow:auto;
+  }
+  .sheet h3{margin:0 0 16px;font-size:18px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:13px;color:var(--ink-2);margin-bottom:6px;font-weight:600}
+  .field input{
+    width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:16px;
+    background:#fbfcfd;color:var(--ink);min-height:46px;
+  }
+  .field .hint{font-size:11px;color:var(--ink-3);margin-top:5px}
+  .sheet-btns{display:flex;gap:10px;margin-top:18px}
+  .sheet-btns button{flex:1;min-height:46px;border-radius:11px;font-size:15px;font-weight:600;cursor:pointer;border:1px solid var(--line)}
+  .btn-cancel{background:#f4f5f7;color:var(--ink-2)}
+  .btn-save{background:var(--red);color:#fff;border-color:var(--red)!important}
+  .btn-danger{background:#fff0f0;color:var(--red);border-color:#f3c9c9!important}
+
+  .toast{
+    position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);
+    background:rgba(31,35,40,.92);color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;
+    opacity:0;pointer-events:none;transition:.25s;z-index:80;white-space:nowrap;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#15181c;--card:#1e2228;--ink:#eef1f4;--ink-2:#b6bec8;--ink-3:#828c98;--line:#2e343c;--red-soft:#3a1d1d;--shadow:0 6px 24px rgba(0,0,0,.25)}
+    .h-card.next{background:linear-gradient(180deg,#2a1c1c,#1e2228)}
+    .chip{background:#2a3037}
+    .mini-btn,.toolbar button,.field input,.btn-cancel{background:#242930}
+    .sheet{background:var(--card)}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap htop">
+    <div class="brand">下一个假期<small>中国法定节假日 · 2026—2027</small></div>
+    <button class="edit-toggle" id="editToggle">编辑数据</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="hero-card" id="heroCard"></div>
+  </section>
+
+  <div class="section-title">节假日列表</div>
+  <div id="list"></div>
+  <button class="add-btn" id="addBtn">＋ 新增假期</button>
+
+  <div class="toolbar">
+    <button id="exportBtn">导出数据</button>
+    <button id="importBtn">导入数据</button>
+    <button id="resetBtn">恢复默认</button>
+  </div>
+
+  <footer>
+    放假安排依据国务院办公厅通知（2025-11-04 发布 2026 年安排、2026-11-05 发布 2027 年安排）<br>
+    数据保存在本设备浏览器中 · 可自行编辑修正
+  </footer>
+</main>
+
+<div class="overlay" id="overlay">
+  <div class="sheet">
+    <h3 id="sheetTitle">编辑假期</h3>
+    <div class="field">
+      <label for="fName">假期名称</label>
+      <input id="fName" type="text" placeholder="例如：春节">
+    </div>
+    <div class="field">
+      <label for="fStart">放假开始</label>
+      <input id="fStart" type="date">
+    </div>
+    <div class="field">
+      <label for="fEnd">放假结束</label>
+      <input id="fEnd" type="date">
+    </div>
+    <div class="field">
+      <label for="fWork">调休上班日</label>
+      <input id="fWork" type="text" placeholder="例如：2027-01-31, 2027-02-14">
+      <div class="hint">多个日期用逗号分隔，留空表示无调休</div>
+    </div>
+    <div class="sheet-btns">
+      <button class="btn-cancel" id="sheetCancel">取消</button>
+      <button class="btn-danger" id="sheetDelete" style="display:none">删除</button>
+      <button class="btn-save" id="sheetSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="exportOverlay">
+  <div class="sheet">
+    <h3>导出数据</h3>
+    <div class="field">
+      <label for="exportText">复制下面的 JSON 保存备份</label>
+      <input id="exportText" type="text" readonly>
+      <div class="hint">长按输入框全选复制，之后可用「导入数据」恢复</div>
+    </div>
+    <div class="sheet-btns">
+      <button class="btn-save" id="exportClose">完成</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="importOverlay">
+  <div class="sheet">
+    <h3>导入数据</h3>
+    <div class="field">
+      <label for="importText">粘贴之前导出的 JSON 数据</label>
+      <input id="importText" type="text" placeholder='[{"name":"元旦","start":"...",...}]'>
+    </div>
+    <div class="sheet-btns">
+      <button class="btn-cancel" id="importCancel">取消</button>
+      <button class="btn-save" id="importSave">导入</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  var STORAGE_KEY = 'holiday-countdown-data-v1';
+
+  var BUILTIN = [
+    {name:'元旦',   start:'2026-01-01', end:'2026-01-03', work:['2026-01-04']},
+    {name:'春节',   start:'2026-02-15', end:'2026-02-23', work:['2026-02-14','2026-02-28']},
+    {name:'清明节', start:'2026-04-04', end:'2026-04-06', work:[]},
+    {name:'劳动节', start:'2026-05-01', end:'2026-05-05', work:['2026-05-09']},
+    {name:'端午节', start:'2026-06-19', end:'2026-06-21', work:[]},
+    {name:'中秋节', start:'2026-09-25', end:'2026-09-27', work:[]},
+    {name:'国庆节', start:'2026-10-01', end:'2026-10-07', work:['2026-09-20','2026-10-10']},
+    {name:'元旦',   start:'2027-01-01', end:'2027-01-03', work:[]},
+    {name:'春节',   start:'2027-02-05', end:'2027-02-13', work:['2027-01-31','2027-02-14']},
+    {name:'清明节', start:'2027-04-03', end:'2027-04-05', work:[]},
+    {name:'劳动节', start:'2027-05-01', end:'2027-05-05', work:['2027-05-08']},
+    {name:'端午节', start:'2027-06-09', end:'2027-06-09', work:[]},
+    {name:'中秋节', start:'2027-09-15', end:'2027-09-15', work:[]},
+    {name:'国庆节', start:'2027-10-01', end:'2027-10-07', work:['2027-09-26','2027-10-09']}
+  ];
+
+  var WEEK = ['周日','周一','周二','周三','周四','周五','周六'];
+  var data = load();
+  var editing = false;
+  var editIndex = -1;
+  var countdownTimer = null;
+
+  function load(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        var parsed = JSON.parse(raw);
+        if(Array.isArray(parsed) && parsed.length && validData(parsed)) return parsed;
+      }
+    }catch(e){}
+    return JSON.parse(JSON.stringify(BUILTIN));
+  }
+  function validData(arr){
+    return arr.every(function(h){
+      return h && typeof h.name==='string' && /^\d{4}-\d{2}-\d{2}$/.test(h.start) &&
+             /^\d{4}-\d{2}-\d{2}$/.test(h.end) && Array.isArray(h.work);
+    });
+  }
+  function save(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+    catch(e){ toast('保存失败，浏览器存储不可用'); }
+  }
+  function d(s){
+    var p = String(s).split('-');
+    return new Date(Number(p[0]), Number(p[1])-1, Number(p[2]));
+  }
+  function today0(){
+    var n = new Date();
+    return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  }
+  function diffDays(a,b){ return Math.round((a-b)/86400000); }
+  function fmt(s){ var x=d(s); return (x.getMonth()+1)+'月'+x.getDate()+'日 '+WEEK[x.getDay()]; }
+  function span(a,b){
+    var x=d(a), y=d(b);
+    if(a===b) return fmt(a);
+    return fmt(a)+' — '+fmt(b);
+  }
+  function daysCount(h){ return diffDays(d(h.end), d(h.start)) + 1; }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+  function sorted(){
+    return data.map(function(h,i){ return {h:h, i:i}; })
+               .sort(function(a,b){ return a.h.start.localeCompare(b.h.start); });
+  }
+  function focusItem(){
+    var t = today0(), s = sorted();
+    for(var k=0;k<s.length;k++){
+      var h=s[k].h;
+      if(d(h.end) >= t) return {h:h, i:s[k].i, active: d(h.start)<=t};
+    }
+    return null;
+  }
+
+  function renderHero(){
+    var box = document.getElementById('heroCard');
+    var f = focusItem();
+    if(!f){
+      box.innerHTML = '<div class="hero-label">当前数据中没有未来的假期</div>'+
+        '<div class="hero-name" style="font-size:24px">暂无安排</div>'+
+        '<div class="hero-meta">点右上角「编辑数据」新增假期，或恢复默认数据。</div>';
+      return;
+    }
+    var h = f.h, t = today0();
+    var target = f.active ? new Date(d(h.end).getTime()+86400000) : d(h.start);
+    var days = Math.max(0, diffDays(target, t));
+    var label = f.active ? '假期进行中' : '距离下一个假期';
+    var name  = h.name;
+    var big   = days;
+    var work = (h.work&&h.work.length)
+      ? '<div class="row"><span class="tag work">调休上班</span><span>'+h.work.map(fmt).join('、')+'</span></div>'
+      : '';
+    box.innerHTML =
+      '<div class="hero-label">'+esc(label)+'</div>'+
+      '<div class="hero-name">'+esc(name)+'</div>'+
+      '<div class="hero-days"><b id="bigDays">'+big+'</b><span>天</span></div>'+
+      '<div class="hero-clock" id="heroClock">正在计算…</div>'+
+      '<div class="hero-meta">'+
+        '<div class="row"><span class="tag">'+esc(h.name)+'</span><span>'+esc(span(h.start,h.end))+' · 共 '+daysCount(h)+' 天</span></div>'+
+        work+
+      '</div>';
+    startClock(target, f.active, h, days);
+  }
+
+  function startClock(target, active, h, days){
+    if(countdownTimer) clearInterval(countdownTimer);
+    function tick(){
+      var now = new Date();
+      var ms = target.getTime() - now.getTime();
+      var el = document.getElementById('heroClock');
+      var bd = document.getElementById('bigDays');
+      if(!el) return;
+      if(ms <= 0){
+        if(bd && !active) bd.textContent = '0';
+        el.textContent = active ? '假期即将结束，收拾心情准备上班吧' : '假期已经开始，好好享受！';
+        return;
+      }
+      var dd = Math.floor(ms/86400000);
+      var hh = Math.floor(ms%86400000/3600000);
+      var mm = Math.floor(ms%3600000/60000);
+      var ss = Math.floor(ms%60000/1000);
+      if(bd && !active) bd.textContent = dd;
+      el.textContent = '还有 '+dd+' 天 '+pad(hh)+' 小时 '+pad(mm)+' 分 '+pad(ss)+' 秒';
+    }
+    tick();
+    countdownTimer = setInterval(tick, 1000);
+  }
+  function pad(n){ return n<10 ? '0'+n : ''+n; }
+
+  var PAGE_SIZE = 3;
+  var pageState = {}; // 每年独立页码，从 1 开始
+
+  function renderList(){
+    var box = document.getElementById('list');
+    var t = today0(), f = focusItem();
+    var s = sorted();
+    // 按年份分组
+    var years = [], byYear = {};
+    s.forEach(function(item){
+      var y = item.h.start.slice(0,4);
+      if(!byYear[y]){ byYear[y]=[]; years.push(y); }
+      byYear[y].push(item);
+    });
+    var html = '';
+    years.forEach(function(y){
+      var items = byYear[y];
+      var totalPages = Math.ceil(items.length / PAGE_SIZE) || 1;
+      var page = pageState[y] || 1;
+      if(page > totalPages) page = totalPages;
+      if(page < 1) page = 1;
+      pageState[y] = page;
+      var slice = items.slice((page-1)*PAGE_SIZE, page*PAGE_SIZE);
+      html += '<div class="year-head">'+y+' 年 <span>'+items.length+' 个假期 · 第 '+page+'/'+totalPages+' 页</span></div><div class="h-list">';
+      slice.forEach(function(item){
+        var h=item.h;
+        var end=d(h.end), start=d(h.start);
+        var status, cls='';
+        if(end < t){ status='已结束'; cls='done past'; }
+        else if(start <= t && end >= t){ status='进行中'; cls='now next'; }
+        else{
+          var n=diffDays(start,t);
+          status='还有 '+n+' 天';
+          cls='soon'+(f && f.i===item.i ? ' next':'');
+        }
+        var work=(h.work&&h.work.length)
+          ? '<div class="h-work">调休上班：'+h.work.map(fmt).join('、')+'</div>' : '';
+        var actions = editing ?
+          '<div class="h-actions"><button class="mini-btn" data-act="edit" data-i="'+item.i+'">编辑</button>'+
+          '<button class="mini-btn del" data-act="del" data-i="'+item.i+'">删除</button></div>' : '';
+        html += '<div class="h-card '+cls+'">'+
+          '<div class="h-row"><div class="h-name">'+esc(h.name)+'<span class="num">'+daysCount(h)+' 天</span></div>'+
+          '<div class="h-status '+cls.split(' ')[0]+'">'+status+'</div></div>'+
+          '<div class="h-date">'+esc(span(h.start,h.end))+'</div>'+work+actions+'</div>';
+      });
+      html += '</div>';
+      if(totalPages > 1){
+        html += '<div class="pager">'+
+          '<button data-page="prev" data-year="'+y+'"'+(page<=1?' disabled':'')+'>上一页</button>'+
+          '<span class="pg-info">'+page+' / '+totalPages+'</span>'+
+          '<button data-page="next" data-year="'+y+'"'+(page>=totalPages?' disabled':'')+'>下一页</button>'+
+          '</div>';
+      }
+    });
+    box.innerHTML = html || '<div class="h-card">暂无假期数据，可新增或恢复默认。</div>';
+  }
+
+  function render(){ renderHero(); renderList(); }
+
+  function toast(msg){
+    var el=document.getElementById('toast');
+    el.textContent=msg; el.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t=setTimeout(function(){ el.classList.remove('show'); },2000);
+  }
+
+  document.getElementById('editToggle').addEventListener('click', function(){
+    editing=!editing;
+    document.body.classList.toggle('editing',editing);
+    this.textContent=editing?'完成编辑':'编辑数据';
+    renderList();
+  });
+
+  document.getElementById('list').addEventListener('click', function(e){
+    var pg=e.target.closest('button[data-page]');
+    if(pg){
+      var y=pg.getAttribute('data-year');
+      var cur=pageState[y]||1;
+      pageState[y]=pg.getAttribute('data-page')==='next'?cur+1:cur-1;
+      renderList();
+      return;
+    }
+    var btn=e.target.closest('button[data-act]');
+    if(!btn) return;
+    var i=Number(btn.getAttribute('data-i'));
+    if(btn.getAttribute('data-act')==='edit') openSheet(i);
+    else if(btn.getAttribute('data-act')==='del') confirmDelete(i);
+  });
+
+  function openSheet(i){
+    editIndex=i;
+    var h=i>=0?data[i]:{name:'',start:'',end:'',work:[]};
+    document.getElementById('sheetTitle').textContent = i>=0?'编辑假期':'新增假期';
+    document.getElementById('fName').value=h.name;
+    document.getElementById('fStart').value=h.start;
+    document.getElementById('fEnd').value=h.end;
+    document.getElementById('fWork').value=(h.work||[]).join(', ');
+    document.getElementById('sheetDelete').style.display = i>=0?'block':'none';
+    document.getElementById('overlay').classList.add('show');
+  }
+  function closeSheet(){ document.getElementById('overlay').classList.remove('show'); }
+  document.getElementById('sheetCancel').addEventListener('click',closeSheet);
+  document.getElementById('overlay').addEventListener('click',function(e){ if(e.target===this) closeSheet(); });
+  document.getElementById('addBtn').addEventListener('click',function(){ openSheet(-1); });
+
+  document.getElementById('sheetDelete').addEventListener('click',function(){
+    if(editIndex<0) return;
+    if(!confirm('确定删除「'+data[editIndex].name+'」吗？')) return;
+    data.splice(editIndex,1); save(); closeSheet(); render(); toast('已删除');
+  });
+
+  document.getElementById('sheetSave').addEventListener('click',function(){
+    var name=document.getElementById('fName').value.trim();
+    var start=document.getElementById('fStart').value;
+    var end=document.getElementById('fEnd').value;
+    var work=document.getElementById('fWork').value.split(/[,，]/).map(function(s){return s.trim();}).filter(Boolean);
+    if(!name){ toast('请填写假期名称'); return; }
+    if(!start||!end){ toast('请选择开始和结束日期'); return; }
+    if(end<start){ toast('结束日期不能早于开始日期'); return; }
+    var bad=work.filter(function(w){ return !/^\d{4}-\d{2}-\d{2}$/.test(w); });
+    if(bad.length){ toast('上班日格式应为 2027-01-31'); return; }
+    var obj={name:name,start:start,end:end,work:work};
+    if(editIndex>=0) data[editIndex]=obj; else data.push(obj);
+    save(); closeSheet(); render(); toast('已保存');
+  });
+
+  document.getElementById('resetBtn').addEventListener('click',function(){
+    if(!confirm('恢复为国务院公布的默认放假安排？你编辑的数据将被覆盖。')) return;
+    data=JSON.parse(JSON.stringify(BUILTIN)); save(); render(); toast('已恢复默认数据');
+  });
+
+  document.getElementById('exportBtn').addEventListener('click',function(){
+    var txt=JSON.stringify(data);
+    document.getElementById('exportText').value=txt;
+    document.getElementById('exportOverlay').classList.add('show');
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(function(){ toast('数据已复制到剪贴板'); },function(){});
+    }
+  });
+  document.getElementById('exportClose').addEventListener('click',function(){
+    document.getElementById('exportOverlay').classList.remove('show');
+  });
+  document.getElementById('exportOverlay').addEventListener('click',function(e){
+    if(e.target===this) this.classList.remove('show');
+  });
+
+  document.getElementById('importBtn').addEventListener('click',function(){
+    document.getElementById('importText').value='';
+    document.getElementById('importOverlay').classList.add('show');
+  });
+  document.getElementById('importCancel').addEventListener('click',function(){
+    document.getElementById('importOverlay').classList.remove('show');
+  });
+  document.getElementById('importSave').addEventListener('click',function(){
+    var txt=document.getElementById('importText').value.trim();
+    try{
+      var arr=JSON.parse(txt);
+      if(!validData(arr)) throw new Error('invalid');
+      data=arr; save();
+      document.getElementById('importOverlay').classList.remove('show');
+      render(); toast('导入成功');
+    }catch(e){ toast('数据格式不正确'); }
+  });
+
+  render();
+
+  document.addEventListener('visibilitychange',function(){
+    if(!document.hidden) render();
+  });
+})();
+</script>
+</body>
+</html>
